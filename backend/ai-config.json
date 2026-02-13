@@ -1,0 +1,8 @@
+{
+  "baseURL": "https://open.bigmodel.cn/api/paas/v4",
+  "model": "glm-4-flash",
+  "apiKey": "***",
+  "timeout": 60000,
+  "maxRetries": 3,
+  "provider": "zhipu"
+}

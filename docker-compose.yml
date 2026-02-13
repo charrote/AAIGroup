@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  # MySQL数据库(部署MySql时使用)
+  # mysql:
+  #   image: mysql:8.0
+  #   container_name: ai_company_mysql
+  #   environment:
+  #     MYSQL_USER: appuser
+  #     MYSQL_PASSWORD: 123456
+  #     MYSQL_DATABASE: ai_company_db
+  #     MYSQL_ROOT_PASSWORD: 123456
+  #   ports:
+  #     - "3306:3306"
+  #   volumes:
+  #     - mysql_data:/var/lib/mysql
+  #     - ./database/init:/docker-entrypoint-initdb.d
+  #   networks:
+  #     - ai_company_network
+
+  # Redis缓存(部署Redis时使用)
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: ai_company_redis
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_data:/data
+  #   networks:
+  #     - ai_company_network
+
+  # 后端服务
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ai_company_backend
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: appuser
+      DB_PASSWORD: 123456
+      DB_NAME: ai_company_db
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: your_jwt_secret_key_here
+      OLLAMA_API_URL: http://host.docker.internal:11434
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mysql
+      - redis
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - ai_company_network
+
+  # 前端服务
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ai_company_frontend
+    environment:
+      REACT_APP_API_URL: http://localhost:3000
+    ports:
+      - "3001:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - ai_company_network
+
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  ai_company_network:
+    driver: bridge
